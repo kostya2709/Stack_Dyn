@@ -12,14 +12,15 @@ int main()
     Stack_t stk1 = {};
     Stack_Constructor (stk1);
 
+    Stack_Push (&stk1, 27);
 
+    int val = Stack_Pop (&stk1);
 
-    int i = 0;
-    for (i = 0; i < 1; i++) Stack_Push (&stk1, 27);
+    printf ("value = %d\n", val);
 
     Stack_Destruct (&stk1);
 
-    Unitest();
+    Unitest ();
 
     return 0;
 }
