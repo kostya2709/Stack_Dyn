@@ -11,10 +11,6 @@
 #define Dump( this )                      \
     Dump_Def ( &this , __LINE__, __FILE__, __PRETTY_FUNCTION__);
 
-/*#define BUG
-#ifdef BUG          \
-    DO( this ) this
-#endif DO( this )*/
 
 //! These are codes of possible errors.
 enum Error_codes {OK, Stack_OverFlow, Stack_Empty, Canary_Stack_Dead, Canary_Arr_Dead, Wrong_Hash};
