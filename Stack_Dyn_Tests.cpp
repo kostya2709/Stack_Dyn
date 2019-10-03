@@ -6,12 +6,17 @@ int Stack_Pop_Test (void);
 
 int Canary_Test (void);
 
+int Change_Memory_Test (void);
+
+
 
 int Unitest (void)
 {
     Stack_Push_Test ();
     Stack_Pop_Test ();
     Canary_Test ();
+    Change_Memory_Test ();
+
 
 }
 
@@ -36,13 +41,15 @@ int Stack_Push_Test (void)
 
     if (stk.error == 0 && temp == 0)
     {
-        printf ("Stack_Push is O'Kay!\n");
+        printf ("Stack_Push is O'Kay!\n\n\n");
+        Stack_Destruct (&stk);
         return 0;
     }
     else
     {
         printf ("Stack_Push has failed!\n\
-                 Expected temp = %d, received %d!\n", 0, temp);
+                 Expected temp = %d, received %d!\n\n\n", 0, temp);
+        Stack_Destruct (&stk);
         return 1;
     }
 
@@ -56,6 +63,7 @@ int Stack_Pop_Test (void)
 
 //First Test
     int temp = Stack_Pop (&stk);
+    temp = Stack_Pop (&stk);
     int error = Stack_OK (&stk);
 
     if (error == Stack_Empty)
@@ -82,11 +90,13 @@ int Stack_Pop_Test (void)
         if (arr[ss - i - 2] != 5 * i)
         {
             printf ("The second Stack_Pop_Test has failed!\n\
-                     Expected %d, recieved %d!\n", 5 * i, arr[ss - i - 1], ss);
+                     Expected %d, recieved %d!\n\n\n", 5 * i, arr[ss - i - 1], ss);
             return -1;
         }
 
-    printf ("The second Stack_Pop_Test is O'K!\n");
+    printf ("The second Stack_Pop_Test is O'K!\n\n\n");
+
+    Stack_Destruct (&stk);
 
     return 0;
 }
@@ -145,12 +155,51 @@ int Canary_Test (void)
     error = Stack_OK (&stk);
 
     if (error == Canary_Arr_Dead)
-        printf (  "Fourth Canary_Test is alright!\n");
+        printf (  "Fourth Canary_Test is alright!\n\n\n");
     else printf ( "Fourth Canary_Test has failed!\n\
-                   Expected error code %d, recieved %d\n", Canary_Arr_Dead, error);
+                   Expected error code %d, recieved %d\n\n\n", Canary_Arr_Dead, error);
 
     *((elem_t*)stk.data + stk.max_size) = can_size;
 
+    Stack_Destruct (&stk);
+
     return 0;
+
+}
+
+int Change_Memory_Test (void)
+{
+    Stack_t stk = {};
+    Stack_Constructor (stk);
+
+//Test 1
+
+    int i = 0;
+    int temp = stk.max_size;
+    for (i = 0; i < temp; i++)
+        Stack_Push (&stk, 27 * (i + 1));
+    int error = Stack_OK (&stk);
+
+    if ((stk.max_size == (int)(temp * multy)) && error != 1)
+            printf (  "The first Change_Memory_Test is alright!\n");
+    else printf ( "The first Change_Memory_Test has failed!\n\
+                   Expected error code %d, recieved %d\n\
+                   Expected stk.max_size %d, recieved %d!\n", OK, error, (int)(temp * multy), stk.max_size);
+
+//Test 2
+
+    temp = stk.max_size;
+    for (i = stk.size; i < temp; i++)
+        Stack_Push (&stk, 27 * (i + 1));
+    error = Stack_OK (&stk);
+
+    if ((stk.max_size == (int)(temp * multy)) && error != 1)
+            printf (  "The second Change_Memory_Test is alright!\n");
+    else printf ( "The second Change_Memory_Test has failed!\n\
+                   Expected error code %d, recieved %d\n\
+                   Expected stk.max_size %d, recieved %d!\n", OK, error, (int)(temp * multy), stk.max_size);
+
+
+    Stack_Destruct (&stk);
 
 }
