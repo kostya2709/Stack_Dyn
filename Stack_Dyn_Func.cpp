@@ -26,8 +26,8 @@ int Dump_Def (Stack_t* stk, const int line, const char* file, const char* functi
     else printf (" (Error)\n");
     printf ("{\n    current size = %d\n", stk->size);
     printf ("    maximal allocated size = %d\n", stk->max_size);
-    printf ("    left stack canary is %ld, right stack canary is %ld\n", stk->canary_front, stk->canary_back);
-    printf ("    left data canary is %ld, right data canary is %ld\n", *(stk->canary_arr_front), *(stk->canary_arr_back));
+    if (stk->error == Canary_Stack_Dead) printf ("    left stack canary is %ld, right stack canary is %ld\n", stk->canary_front, stk->canary_back);
+    if (stk->error == Canary_Arr_Dead)   printf ("    left data canary is %ld, right data canary is %ld\n", *(stk->canary_arr_front), *(stk->canary_arr_back));
     printf ("    hash = %ld, expected %ld\n", stk->hash, Hash (stk));
     printf ("    data[%d] = [0x%x]\n", stk->max_size, stk->data);
     printf ("     {\n");
@@ -71,6 +71,8 @@ long int Hash (Stack_t* stk)
             j += sizeof (stk->hash);
 
         sum += *((char*)stk + j) * (j + 1);
+        sum ^= 0x0101F;
+        sum << 2;
     }
 
     for (i = 0; i < stk->size; i++)
@@ -200,11 +202,12 @@ elem_t Stack_Pop (Stack_t* stk)
     elem_t answer = *(stk->data + stk->size);
     *(stk->data + stk->size) = empty;
 
-    if (stk->error != Stack_Empty) stk->error = OK;
+    if (stk->error == Stack_OverFlow)
+        stk->error = OK;
 
     stk->hash = Hash (stk);
 
-    Dump (*stk);
+    if (Stack_OK (stk)) Dump (*stk);
 
     return answer;
 }
@@ -231,11 +234,12 @@ int Stack_Push (Stack_t* stk, elem_t value)
     if (stk->size >= stk->max_size)
         Size_Change (stk, (int)(stk->max_size * multy));
 
-    stk->error = OK;
+    if (stk->error == Stack_Empty)
+        stk->error = OK;
 
     stk->hash = Hash (stk);
 
-    Dump (*stk);
+    if (Stack_OK (stk)) Dump (*stk);
 
     return OK;
 }
@@ -272,6 +276,8 @@ int Size_Change (Stack_t* stk, int new_size)
     *(stk->canary_arr_back) = can_size;
 
     stk->hash = Hash (stk);
+
+    if (Stack_OK (stk)) Dump (*stk);
 
     return 0;
 }
