@@ -11,10 +11,7 @@ int main()
 
     Stack_t stk1 = {};
     Stack_Constructor (stk1);
-    /*
-    stk1.max_size = 100;
-    stk1.data[78] = (elem_t) stk1.canary_arr_back;
-    stk1.size = 90;*/
+
 
     Stack_Push (&stk1, 27);
 
@@ -22,9 +19,17 @@ int main()
 
     printf ("value = %d\n", val);
 
+    int i = 0;
+    for (i = 0; i < 13; i++)
+        Stack_Push (&stk1, 27);
+
+    i = 0;
+    for (i = 0; i < 13; i++)
+        Stack_Pop (&stk1);
+
     Stack_Destruct (&stk1);
 
-    Unitest ();
+    //Unitest ();
 
     return 0;
 }
