@@ -26,8 +26,8 @@ int Dump_Def (Stack_t* stk, const int line, const char* file, const char* functi
     else printf (" (Error)\n");
     printf ("{\n    current size = %d\n", stk->size);
     printf ("    maximal allocated size = %d\n", stk->max_size);
-    if (stk->error == Canary_Stack_Dead) printf ("    left stack canary is %ld, right stack canary is %ld\n", stk->canary_front, stk->canary_back);
-    if (stk->error == Canary_Arr_Dead)   printf ("    left data canary is %ld, right data canary is %ld\n", *(stk->canary_arr_front), *(stk->canary_arr_back));
+    if (stk->error == Canary_Stack_Dead) printf ("    Expected left stack canary %ld, received left stack canary is %ld, Expected right stack canary %ld, received right stack canary is %ld\n", can_size, stk->canary_front, can_size, stk->canary_back);
+    if (stk->error == Canary_Arr_Dead)   printf ("    Expected left data canary %ld, received left data canary is %ld, Expected right data canary %ld, received right data canary is %ld\n", can_size, *(stk->canary_arr_front), can_size, *(stk->canary_arr_back));
     printf ("    hash = %ld, expected %ld\n", stk->hash, Hash (stk));
     printf ("    data[%d] = [0x%x]\n", stk->max_size, stk->data);
     printf ("     {\n");
@@ -65,13 +65,14 @@ long int Hash (Stack_t* stk)
     int j = 0;
     long sum = 0;
 
-    for (j = 0; j < sizeof (*stk); j++)
-    {
-        if ((char*)stk + j == (char*)&(stk->hash))
-            j += sizeof (stk->hash);
+    char* pointer = (char*)stk;
 
-        sum += *((char*)stk + j) * (j + 1);
-        sum ^= 0x0101F;
+    long int hash_const = 0xA1B3C4F9;
+
+    for (j = 0; j < sizeof (Stack_t) - sizeof (stk->hash); j++)
+    {
+        sum += *(pointer + j) * (j + 1);
+        sum ^= hash_const;
         sum << 2;
     }
 
@@ -100,7 +101,6 @@ int Stack_Construct (Stack_t* stk)
     stk->size = 0;
     stk->max_size = MAX_SIZE;
     stk->error = 0;
-    stk->hash = 0;
 
     stk->canary_arr_front = (long int*)stk->data - 1;
     stk->canary_arr_back = (long int*) ((elem_t*)stk->data + MAX_SIZE);
@@ -109,7 +109,13 @@ int Stack_Construct (Stack_t* stk)
     *(stk->canary_arr_front) = can_size;
     *(stk->canary_arr_back) = can_size;
     stk->canary_back = can_size;
+    stk->hash = Hash (stk);
 
+    if (Stack_OK (stk))
+        {
+            Dump (*stk);
+            return Stack_OK (stk);
+        }
     return 0;
 }
 
@@ -165,7 +171,7 @@ int Stack_OK (Stack_t* stk)
         return Canary_Arr_Dead;
     }
 
-    if (stk->hash != Hash (stk))
+    if ((stk->hash) != Hash (stk))
     {
         stk->error = Wrong_Hash;
         return Wrong_Hash;
@@ -185,6 +191,12 @@ elem_t Stack_Pop (Stack_t* stk)
 {
     assert (stk);
 
+    if (Stack_OK (stk))
+    {
+        Dump (*stk);
+        return Stack_OK (stk);
+    }
+
     if (stk->size <= 0)
     {
         stk->error = Stack_Empty;
@@ -195,7 +207,7 @@ elem_t Stack_Pop (Stack_t* stk)
 
     stk->size--;
 
-    if (stk->size <= (stk->max_size / multy - 2))
+    if (stk->size <= (stk->max_size / multy - 2) && stk->size > MAX_SIZE)
         Size_Change (stk, (int)(stk->max_size / multy - 2));
 
 
@@ -222,6 +234,12 @@ int Stack_Push (Stack_t* stk, elem_t value)
 {
     assert (stk);
 
+    if (Stack_OK (stk))
+    {
+        Dump (*stk);
+        return Stack_OK (stk);
+    }
+
     if (stk->size >= stk->max_size)
     {
         stk->error = Stack_OverFlow;
@@ -230,9 +248,11 @@ int Stack_Push (Stack_t* stk, elem_t value)
     }
 
     *(stk->data + stk->size++) = value;
+    stk->hash = Hash (stk);
 
     if (stk->size >= stk->max_size)
         Size_Change (stk, (int)(stk->max_size * multy));
+
 
     if (stk->error == Stack_Empty)
         stk->error = OK;
@@ -255,11 +275,16 @@ int Size_Change (Stack_t* stk, int new_size)
 {
     assert (stk);
 
+    if (Stack_OK (stk))
+    {
+        Dump (*stk);
+        return Stack_OK (stk);
+    }
+
     if (new_size <= 0)
         return 1;
 
-    while (new_size <= stk->size)
-            new_size++;
+
 
     stk->data = (elem_t*)((long*)(realloc ((long*)stk->data - 1, sizeof(elem_t) * new_size + 2 * sizeof(long))) + 1);
 
