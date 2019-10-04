@@ -5,8 +5,8 @@
 #define empty -666
 
 #define Stack_Constructor( this )         \
-    Stack_Construct ( &this );            \
-    this.name = #this;
+    this.name = #this;                    \
+    Stack_Construct ( &this );
 
 #define Dump( this )                      \
     Dump_Def ( &this , __LINE__, __FILE__, __PRETTY_FUNCTION__);
@@ -31,10 +31,10 @@ struct Stack_t
     int max_size;
     char* name;
     int error;
-    long int hash;
     long int* canary_arr_front;
     long int* canary_arr_back;
     long int canary_back;
+    long int hash;
 };
 
 int Dump_Def (Stack_t* stk, const int line, const char* file, const char* function);
