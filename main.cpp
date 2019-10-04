@@ -11,6 +11,10 @@ int main()
 
     Stack_t stk1 = {};
     Stack_Constructor (stk1);
+    /*
+    stk1.max_size = 100;
+    stk1.data[78] = (elem_t) stk1.canary_arr_back;
+    stk1.size = 90;*/
 
     Stack_Push (&stk1, 27);
 
