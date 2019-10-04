@@ -23,10 +23,35 @@ const long int can_size = 27272727;
 
 typedef int elem_t;
 
+/*!
+@detailed This is stack named Stack_t. It allows you:
+to make the stack with Stack_Construct;
+to Push elements with function Stack_Push;
+to Pop elements with function Stack_Pop;
+to check errors in stack with function Stack_OK;
+to display the hole information about the stack;
+to check information with function Hash;
+to change the size of the stack with function Size_Change;
+to destroy the stack with Stack_Destruct;
+
+Stack poles:
+canary_front - left canary, to check stack safety;
+data - pointer to the array with information;
+size - current amount of elements;
+max_size - callocated amount of elements in the stack;
+name - the name of the stack;
+error - return the code of error in stack;
+canary_arr_front - canary before the array to check safety of the information in data;
+canary_arr_back - canary after the array to check safety of the information in data;
+canary_back - canary after the stack to check its safety;
+hash - hash to check safety of the stack;
+
+*/
+
 struct Stack_t
 {
-    long int canary_front;
-    elem_t* data;
+    long int canary_front;          
+    elem_t* data;                
     int size;
     int max_size;
     char* name;
