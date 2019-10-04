@@ -73,11 +73,18 @@ long int Hash (Stack_t* stk)
     {
         sum += *(pointer + j) * (j + 1);
         sum ^= hash_const;
-        sum << 2;
+        sum << 9;
     }
 
     for (i = 0; i < stk->size; i++)
         sum += *(stk->data + i) * (i + 1);
+
+    char cur_n = 'a';
+    for (i = 0; cur_n; i++)
+    {
+        cur_n = *(stk->name + i);
+        sum += cur_n;
+    }
 
     return sum;
 }
@@ -206,10 +213,11 @@ elem_t Stack_Pop (Stack_t* stk)
     }
 
     stk->size--;
+    stk->hash = Hash (stk);
 
-    if (stk->size <= (stk->max_size / multy - 2) && stk->size > MAX_SIZE)
-        Size_Change (stk, (int)(stk->max_size / multy - 2));
-
+    int neww = (int)(stk->max_size / multy - 2);
+    if (stk->size <= neww && stk->size > MAX_SIZE && stk->size < neww)
+        Size_Change (stk, neww);
 
     elem_t answer = *(stk->data + stk->size);
     *(stk->data + stk->size) = empty;
@@ -283,7 +291,6 @@ int Size_Change (Stack_t* stk, int new_size)
 
     if (new_size <= 0)
         return 1;
-
 
 
     stk->data = (elem_t*)((long*)(realloc ((long*)stk->data - 1, sizeof(elem_t) * new_size + 2 * sizeof(long))) + 1);
